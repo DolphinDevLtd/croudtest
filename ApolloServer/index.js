@@ -36,7 +36,7 @@ const typeDefs = gql`
     bs: String
   }
 
-
+  
 `
 
 // Provide resolver functions for your schema fields
@@ -62,6 +62,6 @@ const server = new ApolloServer({
   resolvers
 })
 
-server.listen().then(({ url }) => {
+server.listen({ port: 4000 }).then(({ url }) => {
   console.log(`🚀 Server ready at ${url}`)
 })
