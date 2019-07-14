@@ -1,11 +1,14 @@
+import gql from 'graphql-tag'
+import apolloClient from '~/plugins/apolloClient'
+
 export const state = () => ({
   users: [],
-  user: []
+  user: null
 })
 
 export const getters = {
   userExist: (state) => {
-    return state.user.length > 0
+    return state.user != null
   }
 }
 
@@ -17,41 +20,61 @@ export const mutations = {
     state.user = payload
   },
   updateUser(state, payload) {
-    state.user[0].name = payload.name
-    state.user[0].email = payload.email
-    state.user[0].company.name = payload.company.name
+    state.user.name = payload.name
+    state.user.email = payload.email
+    state.user.company.name = payload.company.name
   }
 }
 export const actions = {
   allUsers({ commit }) {
-    this.$axios.get('/users/')
-      .then((response) => {
-        commit('setUsers', response.data)
-      }).catch((err) => {
-        console.log(err)
+    const uQuery = gql`
+    query {
+      users {
+        id
+        name
+        email
+        company {
+          name
+        }
+      }
+    }`
+    apolloClient.query({ query: uQuery })
+      .then((res) => {
+        commit('setUsers', res.data.users)
       })
   },
   async getUser({ commit }, payload) {
-    await this.$axios.get(`/users?id=${payload}`)
-      .then((response) => {
-        commit('setUser', response.data)
-      }).catch((err) => {
-        console.log(err)
+    const uQuery = gql`
+    query {
+      user(id: ${payload}) {
+        id
+        name
+        email
+        company {
+          name
+        }
+      }
+    }`
+    await apolloClient.query({ query: uQuery })
+      .then((res) => {
+        commit('setUser', res.data.user)
       })
   },
   updateUser({ commit }, payload) {
-    this.$axios.put(`/users/${payload.id}`,
-      [{
-        name: payload.name,
-        email: payload.email,
-        company: {
-          name: payload.company
-        }
-      }])
-      .then((response) => {
-        commit('updateUser', payload)
-      }).catch((err) => {
-        console.log(err)
-      })
+    const muQuery = gql`
+    mutation {
+      updateUser(id: ${payload.id}, user: 
+        { name: "${payload.name}", email: "${payload.email}", company: "${payload.company}" }
+      ) 
+      {
+        id
+      }
+    }
+    `
+    apolloClient.mutate({
+      mutation: muQuery
+    }).then((data) => {
+      commit('updateUser', payload)
+    })
   }
 }

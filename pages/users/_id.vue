@@ -67,7 +67,7 @@ export default {
 
   computed: {
     ...mapState('users', {
-      currentUser: state => state.user[0]
+      currentUser: state => state.user
     }),
     ...mapGetters('users', {
       userExist: 'userExist'
